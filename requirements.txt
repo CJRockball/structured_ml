@@ -1,0 +1,25 @@
+# Core data
+pandas
+numpy
+pyarrow          # parquet read/write
+
+# Machine learning
+xgboost
+scikit-learn
+category_encoders
+
+# Explainability
+shap
+
+# Config & environment
+pydantic>=2.0
+python-dotenv
+
+# Visualization
+matplotlib
+
+# Experiment tracking (optional but referenced)
+# mlflow
+
+# Utilities (standard library — no install needed)
+# pathlib, json, hashlib, subprocess, logging, datetime, os, sys
