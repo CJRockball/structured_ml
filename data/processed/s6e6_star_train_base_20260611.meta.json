@@ -1,0 +1,138 @@
+{
+  "slug": "s6e6_star_train_base",
+  "created": "2026-06-11T14:47:53",
+  "code_version": {
+    "source": "file",
+    "hash": "d5796f68",
+    "message": "no-git",
+    "file_hash": "d5796f68"
+  },
+  "data_hash": "03c818d6",
+  "parent": "train.csv",
+  "stages": [
+    "load",
+    "missing_encode",
+    "cat_encode"
+  ],
+  "notes": "Baseline encoding, no feature engineering",
+  "rows": 577347,
+  "columns": [
+    "alpha",
+    "delta",
+    "u",
+    "g",
+    "r",
+    "i",
+    "z",
+    "redshift",
+    "spectral_type",
+    "galaxy_population",
+    "class"
+  ],
+  "cat_cols": [
+    "spectral_type",
+    "galaxy_population",
+    "class"
+  ],
+  "str_cols": [],
+  "num_cols": [
+    "alpha",
+    "delta",
+    "u",
+    "g",
+    "r",
+    "i",
+    "z",
+    "redshift"
+  ],
+  "int_cols": [],
+  "target_cols": [
+    "class"
+  ],
+  "dtypes": {
+    "alpha": "float32",
+    "delta": "float32",
+    "u": "float32",
+    "g": "float32",
+    "r": "float32",
+    "i": "float32",
+    "z": "float32",
+    "redshift": "float32",
+    "spectral_type": "category",
+    "galaxy_population": "category",
+    "class": "category"
+  },
+  "num_stats": {
+    "alpha": {
+      "mean": 181.616669,
+      "std": 96.242943,
+      "min": 0.011684,
+      "max": 359.999817,
+      "n_null": 0
+    },
+    "delta": {
+      "mean": 21.834654,
+      "std": 18.933571,
+      "min": -17.966988,
+      "max": 79.158325,
+      "n_null": 0
+    },
+    "u": {
+      "mean": 22.441925,
+      "std": 2.018135,
+      "min": -0.139225,
+      "max": 28.253263,
+      "n_null": 0
+    },
+    "g": {
+      "mean": 21.007273,
+      "std": 1.795426,
+      "min": 13.535483,
+      "max": 27.620207,
+      "n_null": 0
+    },
+    "r": {
+      "mean": 19.962809,
+      "std": 1.648964,
+      "min": 12.579407,
+      "max": 25.254499,
+      "n_null": 0
+    },
+    "i": {
+      "mean": 19.37891,
+      "std": 1.580059,
+      "min": 11.962782,
+      "max": 27.910852,
+      "n_null": 0
+    },
+    "z": {
+      "mean": 19.041134,
+      "std": 1.584365,
+      "min": 11.682803,
+      "max": 26.826866,
+      "n_null": 0
+    },
+    "redshift": {
+      "mean": 0.723135,
+      "std": 0.81007,
+      "min": -0.00997,
+      "max": 7.01078,
+      "n_null": 0
+    }
+  },
+  "cat_stats": {
+    "spectral_type": {
+      "n_unique": 4,
+      "n_null": 0
+    },
+    "galaxy_population": {
+      "n_unique": 2,
+      "n_null": 0
+    },
+    "class": {
+      "n_unique": 3,
+      "n_null": 0
+    }
+  },
+  "int_stats": {}
+}
