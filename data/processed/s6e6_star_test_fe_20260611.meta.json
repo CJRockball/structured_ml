@@ -1,0 +1,288 @@
+{
+  "slug": "s6e6_star_test_fe",
+  "created": "2026-06-11T16:54:29",
+  "code_version": {
+    "source": "git",
+    "hash": "40eb50f",
+    "message": "first commit",
+    "file_hash": "6efe69da"
+  },
+  "data_hash": "06f55337",
+  "parent": "s6e6_star_test_base_20260611.parquet",
+  "stages": [
+    "load_base",
+    "fe_v2"
+  ],
+  "notes": "FE applied. high_card_te_cols=[]",
+  "rows": 247435,
+  "columns": [
+    "alpha",
+    "delta",
+    "u",
+    "g",
+    "r",
+    "i",
+    "z",
+    "redshift",
+    "spectral_type",
+    "galaxy_population",
+    "alpha_log1p",
+    "delta_log1p",
+    "u_per_g",
+    "alpha_per_delta",
+    "alpha_sq",
+    "delta_sq",
+    "u_sq",
+    "g_sq",
+    "r_sq",
+    "i_sq",
+    "z_sq",
+    "redshift_sq",
+    "redshift_by_spectral_type_mean",
+    "redshift_by_spectral_type_std",
+    "alpha_by_galaxy_population_mean",
+    "alpha_by_galaxy_population_std"
+  ],
+  "cat_cols": [
+    "spectral_type",
+    "galaxy_population"
+  ],
+  "str_cols": [],
+  "num_cols": [
+    "alpha",
+    "delta",
+    "u",
+    "g",
+    "r",
+    "i",
+    "z",
+    "redshift",
+    "alpha_log1p",
+    "delta_log1p",
+    "u_per_g",
+    "alpha_per_delta",
+    "alpha_sq",
+    "delta_sq",
+    "u_sq",
+    "g_sq",
+    "r_sq",
+    "i_sq",
+    "z_sq",
+    "redshift_sq",
+    "redshift_by_spectral_type_mean",
+    "redshift_by_spectral_type_std",
+    "alpha_by_galaxy_population_mean",
+    "alpha_by_galaxy_population_std"
+  ],
+  "int_cols": [],
+  "target_cols": [],
+  "dtypes": {
+    "alpha": "float32",
+    "delta": "float32",
+    "u": "float32",
+    "g": "float32",
+    "r": "float32",
+    "i": "float32",
+    "z": "float32",
+    "redshift": "float32",
+    "spectral_type": "category",
+    "galaxy_population": "category",
+    "alpha_log1p": "float32",
+    "delta_log1p": "float32",
+    "u_per_g": "float32",
+    "alpha_per_delta": "float32",
+    "alpha_sq": "float32",
+    "delta_sq": "float32",
+    "u_sq": "float32",
+    "g_sq": "float32",
+    "r_sq": "float32",
+    "i_sq": "float32",
+    "z_sq": "float32",
+    "redshift_sq": "float32",
+    "redshift_by_spectral_type_mean": "float32",
+    "redshift_by_spectral_type_std": "float32",
+    "alpha_by_galaxy_population_mean": "float32",
+    "alpha_by_galaxy_population_std": "float32"
+  },
+  "num_stats": {
+    "alpha": {
+      "mean": 181.360626,
+      "std": 96.213379,
+      "min": 0.010959,
+      "max": 359.999725,
+      "n_null": 0
+    },
+    "delta": {
+      "mean": 21.853897,
+      "std": 18.931366,
+      "min": -17.959259,
+      "max": 79.170433,
+      "n_null": 0
+    },
+    "u": {
+      "mean": 22.44207,
+      "std": 2.019044,
+      "min": 13.902664,
+      "max": 27.835632,
+      "n_null": 0
+    },
+    "g": {
+      "mean": 21.009836,
+      "std": 1.798633,
+      "min": 13.374549,
+      "max": 27.17341,
+      "n_null": 0
+    },
+    "r": {
+      "mean": 19.965652,
+      "std": 1.650949,
+      "min": 10.390731,
+      "max": 25.291985,
+      "n_null": 0
+    },
+    "i": {
+      "mean": 19.381857,
+      "std": 1.58188,
+      "min": 10.034181,
+      "max": 24.567823,
+      "n_null": 0
+    },
+    "z": {
+      "mean": 19.04315,
+      "std": 1.587103,
+      "min": 10.632026,
+      "max": 25.700336,
+      "n_null": 0
+    },
+    "redshift": {
+      "mean": 0.72478,
+      "std": 0.810582,
+      "min": -0.009968,
+      "max": 7.007179,
+      "n_null": 0
+    },
+    "alpha_log1p": {
+      "mean": 4.895766,
+      "std": 1.056167,
+      "min": 0.010899,
+      "max": 5.888877,
+      "n_null": 0
+    },
+    "delta_log1p": {
+      "mean": 2.481173,
+      "std": 1.45976,
+      "min": 0.0,
+      "max": 4.384155,
+      "n_null": 0
+    },
+    "u_per_g": {
+      "mean": 1.06921,
+      "std": 0.05391,
+      "min": 0.752771,
+      "max": 1.357586,
+      "n_null": 0
+    },
+    "alpha_per_delta": {
+      "mean": 57.47731,
+      "std": 2541.187012,
+      "min": -234638.5,
+      "max": 530190.25,
+      "n_null": 0
+    },
+    "alpha_sq": {
+      "mean": 42148.65625,
+      "std": 36325.203125,
+      "min": 0.00012,
+      "max": 129599.804688,
+      "n_null": 0
+    },
+    "delta_sq": {
+      "mean": 835.988037,
+      "std": 948.882874,
+      "min": 0.0,
+      "max": 6267.95752,
+      "n_null": 0
+    },
+    "u_sq": {
+      "mean": 507.723022,
+      "std": 90.296333,
+      "min": 193.284073,
+      "max": 774.822449,
+      "n_null": 0
+    },
+    "g_sq": {
+      "mean": 444.648346,
+      "std": 73.629593,
+      "min": 178.878555,
+      "max": 738.394226,
+      "n_null": 0
+    },
+    "r_sq": {
+      "mean": 401.352814,
+      "std": 64.172745,
+      "min": 107.967285,
+      "max": 639.684509,
+      "n_null": 0
+    },
+    "i_sq": {
+      "mean": 378.158813,
+      "std": 60.162144,
+      "min": 100.684784,
+      "max": 603.577942,
+      "n_null": 0
+    },
+    "z_sq": {
+      "mean": 365.160461,
+      "std": 59.705421,
+      "min": 113.03997,
+      "max": 660.507324,
+      "n_null": 0
+    },
+    "redshift_sq": {
+      "mean": 1.182348,
+      "std": 2.952805,
+      "min": 0.0,
+      "max": 49.100555,
+      "n_null": 0
+    },
+    "redshift_by_spectral_type_mean": {
+      "mean": 0.722619,
+      "std": 0.288176,
+      "min": 0.525542,
+      "max": 1.432828,
+      "n_null": 0
+    },
+    "redshift_by_spectral_type_std": {
+      "mean": 0.701857,
+      "std": 0.282994,
+      "min": 0.447212,
+      "max": 1.116722,
+      "n_null": 0
+    },
+    "alpha_by_galaxy_population_mean": {
+      "mean": 181.610062,
+      "std": 2.200395,
+      "min": 179.167526,
+      "max": 183.592316,
+      "n_null": 0
+    },
+    "alpha_by_galaxy_population_std": {
+      "mean": 95.97522,
+      "std": 7.125178,
+      "min": 89.556473,
+      "max": 103.884544,
+      "n_null": 0
+    }
+  },
+  "cat_stats": {
+    "spectral_type": {
+      "n_unique": 4,
+      "n_null": 0
+    },
+    "galaxy_population": {
+      "n_unique": 2,
+      "n_null": 0
+    }
+  },
+  "int_stats": {}
+}

@@ -11,7 +11,6 @@ import shap
 
 from category_encoders import TargetEncoder
 
-from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import auc, log_loss, roc_curve, \
     roc_auc_score, root_mean_squared_error, balanced_accuracy_score
 
@@ -20,7 +19,7 @@ from xgboost import XGBClassifier, XGBRegressor
 import datetime
 import json
 
-from utils.utils_reproducibility import set_seed
+from utils.utils_reproducibility import set_seed, get_folds
 from utils.utils_fit_models import plot_shap_bar, plot_shap_beeswarm, plot_xgb_importance
 
 from config import (
@@ -51,6 +50,33 @@ exp_log  = make_exp_logger(exp_dir)   # live from this point forward
 exp_log.info(f"Experiment: {data_cfg.exp_name}")
 exp_log.info(f"Notes: {data_cfg.exp_notes}")
 
+
+import argparse
+
+def parse_args(cfg: DataConfig) -> DataConfig:
+    """
+    Override DataConfig fields from CLI. All args optional —
+    omitting them falls back to config defaults unchanged.
+    """
+    parser = argparse.ArgumentParser(description="XGBoost training script")
+    parser.add_argument("--train-file", type=str, default=None,
+                        help=f"Train parquet filename (default: {cfg.train_file})")
+    parser.add_argument("--test-file",  type=str, default=None,
+                        help=f"Test parquet filename  (default: {cfg.test_file})")
+    parser.add_argument("--exp-name",   type=str, default=None,
+                        help=f"Experiment folder name (default: {cfg.exp_name})")
+    parser.add_argument("--exp-notes",  type=str, default=None,
+                        help="Free-text notes saved to config.json")
+
+    args = parser.parse_args()
+    overrides = {k: v for k, v in vars(args).items() if v is not None}
+
+    if overrides:
+        log.info(f"[cli] overrides applied: {overrides}")
+        return cfg.model_copy(update={
+            k.replace("-", "_"): v for k, v in overrides.items()
+        })
+    return cfg
 
 
 def import_data(cfg:DataConfig, proc_dir:Path, target:str) \
@@ -92,15 +118,17 @@ def train_model(
         df_X[col] = df_X[col].cat.codes.astype('int16')
         df_X_test[col] = df_X_test[col].cat.codes.astype('int16')
     
-    skf = StratifiedKFold(n_splits=cv_cfg.n_folds, shuffle=True, random_state=cv_cfg.seed )
-
+    #skf = StratifiedKFold(n_splits=cv_cfg.n_folds, shuffle=True, random_state=cv_cfg.seed )
+    df_cv_split = get_folds(df_X, df_y)
+    
+    
     n_classes = df_y.nunique()
     oof = np.zeros((len(df_train),n_classes))
     preds = np.zeros((len(df_test),n_classes))
     fold_metrics = []
     fold_loglosses = []
     models = []
-    for i,(train_index, valid_index) in enumerate(skf.split(df_X, df_y)):
+    for i,(train_index, valid_index) in enumerate(df_cv_split): # skf.split(df_X, df_y)):
         Xtrain = df_X.iloc[train_index]
         ytrain = df_y.iloc[train_index]
         Xvalid = df_X.iloc[valid_index]
@@ -155,13 +183,8 @@ def train_model(
 
 def model_importance(model, Xtrain):
     # # Get feature importance scores
-    # importance_scores = model.get_booster().get_score(importance_type='total_gain')
-    # df_imp = pd.DataFrame.from_dict(importance_scores, orient='index', columns=['Importance'])
-    # df_imp.index = Xtrain.columns
-
-    # df_imp.plot(kind='barh')
-    # plt.show()
-    plot_xgb_importance(model, exp_dir, max_display=30)
+    feature_list = Xtrain.columns
+    plot_xgb_importance(model, feature_list, exp_dir, max_display=30)
     return
 
 

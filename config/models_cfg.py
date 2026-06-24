@@ -34,8 +34,8 @@ class CompetitionConfig(BaseModel):
 
 class DataConfig(BaseModel):
     """Which processed files this model experiment consumes."""
-    train_file: str = "s6e6_star_train_base_20260604.parquet"
-    test_file:  str = "s6e6_star_test_base_20260604.parquet"
+    train_file: str = "s6e6_star_train_base_20260611.parquet"
+    test_file:  str = "s6e6_star_test_base_20260611.parquet"
     
     exp_name:    str = "xgb1_base"          # ← you set this per experiment
     exp_notes:   str = "baseline xgb run"   # ← optional human description
