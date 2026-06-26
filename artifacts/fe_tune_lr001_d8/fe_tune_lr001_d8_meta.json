@@ -1,0 +1,25 @@
+{
+  "fname": "fe_tune_lr001_d8",
+  "train": "s6e6_star_train_fe_20260611.parquet",
+  "test": "s6e6_star_test_fe_20260611.parquet",
+  "created": "20260625_2201",
+  "cv_auc": 0.9525244398911568,
+  "cv_logloss": 0.09501694462307297,
+  "params": {
+    "seed": 1337,
+    "device": "cuda",
+    "objective": "multi:softprob",
+    "tree_method": "hist",
+    "max_depth": 8,
+    "min_child_weight": 1,
+    "learning_rate": 0.01,
+    "subsample": 1.0,
+    "colsample_bytree": 1.0,
+    "colsample_bylevel": 1.0,
+    "reg_alpha": 2.0,
+    "reg_lambda": 0.3,
+    "n_estimators": 3000,
+    "early_stopping_rounds": 100,
+    "eval_metric": "mlogloss"
+  }
+}

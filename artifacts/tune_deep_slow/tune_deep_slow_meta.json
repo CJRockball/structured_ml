@@ -1,0 +1,25 @@
+{
+  "fname": "tune_deep_slow",
+  "train": "s6e6_star_train_base_20260611.parquet",
+  "test": "s6e6_star_test_base_20260611.parquet",
+  "created": "20260626_0735",
+  "cv_auc": 0.9529118337523755,
+  "cv_logloss": 0.09435767231473505,
+  "params": {
+    "seed": 1337,
+    "device": "cuda",
+    "objective": "multi:softprob",
+    "tree_method": "hist",
+    "max_depth": 8,
+    "min_child_weight": 5,
+    "learning_rate": 0.01,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "colsample_bylevel": 1.0,
+    "reg_alpha": 2.0,
+    "reg_lambda": 0.3,
+    "n_estimators": 4000,
+    "early_stopping_rounds": 100,
+    "eval_metric": "mlogloss"
+  }
+}

@@ -2,9 +2,9 @@
   "fname": "xgb1_base",
   "train": "s6e6_star_train_base_20260611.parquet",
   "test": "s6e6_star_test_base_20260611.parquet",
-  "created": "20260611_1500",
-  "cv_auc": 0.9552946961848917,
-  "cv_logloss": 0.09051340261876054,
+  "created": "20260625_1416",
+  "cv_auc": 0.9552985292701901,
+  "cv_logloss": 0.0905143652206035,
   "params": {
     "seed": 1337,
     "device": "cuda",

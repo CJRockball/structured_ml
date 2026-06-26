@@ -1,0 +1,62 @@
+{
+  "comp": {
+    "name": "s6e6_star",
+    "raw_train_file": "train.csv",
+    "raw_test_file": "test.csv",
+    "sample_sub_file": "sample_submission.csv",
+    "n_test": 247435
+  },
+  "data": {
+    "train_file": "s6e6_star_train_fe_20260611.parquet",
+    "test_file": "s6e6_star_test_fe_20260611.parquet",
+    "exp_name": "xgb1_fe1",
+    "exp_notes": "First run with argparse"
+  },
+  "features": {
+    "target": "class",
+    "cats": [
+      "spectral_type",
+      "galaxy_population"
+    ],
+    "nums": [
+      "alpha",
+      "delta",
+      "u",
+      "g",
+      "r",
+      "i",
+      "z",
+      "redshift"
+    ],
+    "target_type": "str"
+  },
+  "xgb": {
+    "seed": 1337,
+    "device": "cuda",
+    "objective": "multi:softprob",
+    "tree_method": "hist",
+    "max_depth": 6,
+    "min_child_weight": 1,
+    "learning_rate": 0.05,
+    "subsample": 1.0,
+    "colsample_bytree": 1.0,
+    "colsample_bylevel": 1.0,
+    "reg_alpha": 2.0,
+    "reg_lambda": 0.3,
+    "n_estimators": 2000,
+    "early_stopping_rounds": 100,
+    "eval_metric": "mlogloss"
+  },
+  "cv": {
+    "n_folds": 5,
+    "seed": 1337,
+    "shuffle": true
+  },
+  "global": {
+    "seed": 1337,
+    "n_jobs": -1,
+    "use_gpu": true,
+    "log_level": "INFO",
+    "verbose": true
+  }
+}

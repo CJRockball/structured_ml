@@ -18,9 +18,11 @@ import xgboost as xgb
 from xgboost import XGBClassifier, XGBRegressor
 import datetime
 import json
+import argparse
 
 from utils.utils_reproducibility import set_seed, get_folds
 from utils.utils_fit_models import plot_shap_bar, plot_shap_beeswarm, plot_xgb_importance
+from utils.utils_basic import log_run
 
 from config import (
     GlobalConfig, global_cfg,          
@@ -38,6 +40,56 @@ import joblib
 pipe_log.info("[models.xgb] stage started")
 set_seed()
 
+
+def parse_args(
+    data_cfg: DataConfig,
+    xgb_cfg: XGBConfig
+) -> tuple[DataConfig, XGBConfig]:
+
+    parser = argparse.ArgumentParser(description="XGBoost training script")
+
+    # ── DataConfig overrides ──────────────────────────────────
+    parser.add_argument("--train-file",  type=str,   default=None)
+    parser.add_argument("--test-file",   type=str,   default=None)
+    parser.add_argument("--exp-name",    type=str,   default=None)
+    parser.add_argument("--exp-notes",   type=str,   default=None)
+
+    # ── XGBConfig overrides ───────────────────────────────────
+    parser.add_argument("--lr",           type=float, default=None, dest="learning_rate")
+    parser.add_argument("--n-estimators", type=int,   default=None)
+    parser.add_argument("--max-depth",    type=int,   default=None)
+    parser.add_argument("--min-child-weight", type=int, default=None)
+    parser.add_argument("--subsample",    type=float, default=None)
+    parser.add_argument("--colsample-bytree", type=float, default=None)
+    parser.add_argument("--reg-alpha",    type=float, default=None)
+    parser.add_argument("--reg-lambda",   type=float, default=None)
+
+    args = parser.parse_args()
+    all_args = {k: v for k, v in vars(args).items() if v is not None}
+
+    # Split overrides by config ownership
+    data_keys = {"train_file", "test_file", "exp_name", "exp_notes"}
+    xgb_keys  = {
+        "learning_rate", "n_estimators", "max_depth", "min_child_weight",
+        "subsample", "colsample_bytree", "reg_alpha", "reg_lambda"
+    }
+
+    # argparse uses underscores internally after dest= or hyphen→underscore conversion
+    data_overrides = {k: v for k, v in all_args.items() if k in data_keys}
+    xgb_overrides  = {k: v for k, v in all_args.items() if k in xgb_keys}
+
+    if data_overrides:
+        log.info(f"[cli] data overrides: {data_overrides}")
+        data_cfg = data_cfg.model_copy(update=data_overrides)
+
+    if xgb_overrides:
+        log.info(f"[cli] xgb overrides:  {xgb_overrides}")
+        xgb_cfg = xgb_cfg.model_copy(update=xgb_overrides)  # Pydantic re-validates
+
+    return data_cfg, xgb_cfg
+
+# Replace the module-level data_cfg usage with the parsed version
+data_cfg, xgb_cfg = parse_args(data_cfg, xgb_cfg)         # ← add this line
 # Experiment notes
 exp_dir  = ART_DIR / data_cfg.exp_name
 # assert not exp_dir.exists(), (
@@ -51,32 +103,7 @@ exp_log.info(f"Experiment: {data_cfg.exp_name}")
 exp_log.info(f"Notes: {data_cfg.exp_notes}")
 
 
-import argparse
 
-def parse_args(cfg: DataConfig) -> DataConfig:
-    """
-    Override DataConfig fields from CLI. All args optional —
-    omitting them falls back to config defaults unchanged.
-    """
-    parser = argparse.ArgumentParser(description="XGBoost training script")
-    parser.add_argument("--train-file", type=str, default=None,
-                        help=f"Train parquet filename (default: {cfg.train_file})")
-    parser.add_argument("--test-file",  type=str, default=None,
-                        help=f"Test parquet filename  (default: {cfg.test_file})")
-    parser.add_argument("--exp-name",   type=str, default=None,
-                        help=f"Experiment folder name (default: {cfg.exp_name})")
-    parser.add_argument("--exp-notes",  type=str, default=None,
-                        help="Free-text notes saved to config.json")
-
-    args = parser.parse_args()
-    overrides = {k: v for k, v in vars(args).items() if v is not None}
-
-    if overrides:
-        log.info(f"[cli] overrides applied: {overrides}")
-        return cfg.model_copy(update={
-            k.replace("-", "_"): v for k, v in overrides.items()
-        })
-    return cfg
 
 
 def import_data(cfg:DataConfig, proc_dir:Path, target:str) \
@@ -118,7 +145,6 @@ def train_model(
         df_X[col] = df_X[col].cat.codes.astype('int16')
         df_X_test[col] = df_X_test[col].cat.codes.astype('int16')
     
-    #skf = StratifiedKFold(n_splits=cv_cfg.n_folds, shuffle=True, random_state=cv_cfg.seed )
     df_cv_split = get_folds(df_X, df_y)
     
     
@@ -313,11 +339,27 @@ def save_files(
     df_check = pd.read_csv(SUB_DIR / f'{data_cfg.exp_name}.csv')
     assert df_check.shape[1] == 2, 'the saved submission file has the wrong number of columns'
     assert df_check.shape[0] == comp_cfg.n_test, 'the saved file has the wrong number of rows'
+    
+        
+    # build the record — all values already in scope
+    run_record = {
+        "date":          datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "exp_name":      data_cfg.exp_name,
+        "exp_notes":     data_cfg.exp_notes,
+        "train_file":    data_cfg.train_file,
+        "n_folds":       cv_cfg.n_folds,
+        "mean_cv_metric":   round(float(np.mean(fold_metrics)), 5),
+        "std_cv_metric":    round(float(np.std(fold_metrics)), 5),
+        "mean_logloss":  round(float(np.mean(fold_loglosses)), 5),
+        #"oof_auc":       round(float(roc_auc_score(df_train[features.target], oof)), 5),
+        "n_features":    df_train.shape[1],
+        "xgb_params":    json.dumps(xgb_cfg.to_dict()),   # json already imported
+    }
+
+    log_run(ART_DIR, run_record)
+    pipe_log.info(f"Run logged to {ART_DIR / 'run_log.csv'}")
+        
     return 
-
-
-
-
 
 
 def main():
@@ -329,7 +371,7 @@ def main():
     models, Xtrain, Xvalid, oof, preds, fold_metrics, fold_loglosses = \
              train_model(df_train, df_test, cats, features.target, cv_cfg, xgb_cfg)
     model_importance(models[-1], Xtrain)
-    model_shap(models[-1], Xtrain, Xvalid, exp_dir, xgb_cfg.seed)
+    #model_shap(models[-1], Xtrain, Xvalid, exp_dir, xgb_cfg.seed)
     save_files(df_train, oof, preds, fold_metrics, fold_loglosses,
            comp_cfg, data_cfg, features, xgb_cfg, cv_cfg, global_cfg,
            label_flag=True)

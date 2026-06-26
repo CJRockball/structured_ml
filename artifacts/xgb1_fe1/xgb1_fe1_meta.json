@@ -1,0 +1,25 @@
+{
+  "fname": "xgb1_fe1",
+  "train": "s6e6_star_train_fe_20260611.parquet",
+  "test": "s6e6_star_test_fe_20260611.parquet",
+  "created": "20260625_1529",
+  "cv_auc": 0.9555789523744815,
+  "cv_logloss": 0.08991792836207517,
+  "params": {
+    "seed": 1337,
+    "device": "cuda",
+    "objective": "multi:softprob",
+    "tree_method": "hist",
+    "max_depth": 6,
+    "min_child_weight": 1,
+    "learning_rate": 0.05,
+    "subsample": 1.0,
+    "colsample_bytree": 1.0,
+    "colsample_bylevel": 1.0,
+    "reg_alpha": 2.0,
+    "reg_lambda": 0.3,
+    "n_estimators": 2000,
+    "early_stopping_rounds": 100,
+    "eval_metric": "mlogloss"
+  }
+}

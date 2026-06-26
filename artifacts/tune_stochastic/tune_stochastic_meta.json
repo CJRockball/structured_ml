@@ -1,0 +1,25 @@
+{
+  "fname": "tune_stochastic",
+  "train": "s6e6_star_train_base_20260611.parquet",
+  "test": "s6e6_star_test_base_20260611.parquet",
+  "created": "20260626_0747",
+  "cv_auc": 0.954631999938484,
+  "cv_logloss": 0.09102130170830477,
+  "params": {
+    "seed": 1337,
+    "device": "cuda",
+    "objective": "multi:softprob",
+    "tree_method": "hist",
+    "max_depth": 6,
+    "min_child_weight": 3,
+    "learning_rate": 0.05,
+    "subsample": 0.6,
+    "colsample_bytree": 0.6,
+    "colsample_bylevel": 1.0,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "n_estimators": 2000,
+    "early_stopping_rounds": 100,
+    "eval_metric": "mlogloss"
+  }
+}

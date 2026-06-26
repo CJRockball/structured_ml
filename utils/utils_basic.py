@@ -317,9 +317,6 @@ def target_encode(
     return df
 
 
-
-#%%
-
 def missing_encode(
     df_train:pd.DataFrame,
     df_test:pd.DataFrame,
@@ -372,8 +369,6 @@ def missing_encode(
     return df1, df2 
 
 
-
-# %%
 
 def cat_encode(
     df_train: pd.DataFrame,
@@ -432,3 +427,19 @@ def cat_encode(
     return df1, df2
 
 
+
+def log_run(art_dir: Path, record: dict, ledger_name: str = "run_log.csv") -> None:
+    """Append one run's metrics as a row to the shared run ledger CSV.
+
+    Creates the file with headers on first call; appends on all subsequent calls.
+    """
+    ledger_path = art_dir / ledger_name
+    row = pd.DataFrame([record])
+
+    if ledger_path.exists():
+        existing = pd.read_csv(ledger_path)
+        updated = pd.concat([existing, row], ignore_index=True)
+    else:
+        updated = row
+
+    updated.to_csv(ledger_path, index=False)
