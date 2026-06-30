@@ -96,38 +96,50 @@ def cat_cat_interact(
     pairs: list[tuple[str, str]] | None = None,
     auto_all: bool = False,
     max_combined_cardinality: int = 200,
+    low_card_threshold: int | None = None,
     sep: str = "__",
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, list[str], list[str]]:
     """
-    Create compound categorical features by string-concatenating two cat columns.
+    Create compound categorical features by concatenating two categorical columns.
 
-    The combined column is left as str (object) so it can be passed through
-    the same cat_encode() pipeline used in basic.py or eda_fe_v2.py.
+    Returns:
+        df_train_out, df_test_out, low_card_cols, high_card_cols
 
-    Two modes:
-      - Explicit:  pairs=[("compound", "team"), ("compound", "circuit")]
-      - Auto:      auto_all=True crosses every cat-dtype column combination.
-                   Guarded by max_combined_cardinality — pairs whose product
-                   of unique values exceeds this limit are skipped to avoid
-                   high-cardinality sparse columns that hurt tree models.
+    Logic:
+    - Candidate pair generation comes from explicit `pairs` or `auto_all=True`
+    - Pair creation is skipped if nunique(A) * nunique(B) exceeds
+      `max_combined_cardinality`
+    - Created columns are split into low/high-card buckets using the observed
+      train-set cardinality of the new compound column
+    - If `low_card_threshold` is None, it defaults to `max_combined_cardinality`
 
-    max_combined_cardinality: safety guard. nunique(A) * nunique(B) > limit → skip.
-                              Default 200 is conservative; raise to 500 for datasets
-                              with many low-cardinality cats.
-
-    Output cols: {col_a}{sep}{col_b}  (str / object dtype)
+    Notes:
+    - No target is used
+    - Copies are returned; inputs are not mutated
+    - Output categorical columns remain object dtype for downstream encoders
     """
     df1, df2 = df_train.copy(), df_test.copy()
-    added = []
+    low_card_cols: list[str] = []
+    high_card_cols: list[str] = []
+    added: list[str] = []
 
-    if pairs is None and auto_all:
-        cat_cols = df1.select_dtypes(["object", "category"]).columns.tolist()
-        pairs = list(combinations(cat_cols, 2))
-        log.info(f"cat_cat_interact auto mode: {len(cat_cols)} cat cols → {len(pairs)} candidate pairs")
+    if low_card_threshold is None:
+        low_card_threshold = max_combined_cardinality
+
+    if pairs is None:
+        if auto_all:
+            cat_cols = df1.select_dtypes(include=["object", "category"]).columns.tolist()
+            pairs = list(combinations(cat_cols, 2))
+            log.info(
+                f"cat_cat_interact auto mode: {len(cat_cols)} cat cols -> "
+                f"{len(pairs)} candidate pairs"
+            )
+        else:
+            pairs = []
 
     if not pairs:
         log.warning("cat_cat_interact: no pairs provided and auto_all not set — nothing done")
-        return df1, df2
+        return df1, df2, low_card_cols, high_card_cols
 
     for col_a, col_b in pairs:
         missing = [c for c in (col_a, col_b) if c not in df1.columns]
@@ -135,11 +147,11 @@ def cat_cat_interact(
             log.warning(f"cat_cat_interact: {missing} not in DataFrame — pair skipped")
             continue
 
-        combined_card = df1[col_a].nunique() * df1[col_b].nunique()
-        if combined_card > max_combined_cardinality:
+        est_combined_card = df1[col_a].nunique(dropna=False) * df1[col_b].nunique(dropna=False)
+        if est_combined_card > max_combined_cardinality:
             log.info(
-                f"cat_cat_interact: '{col_a}' × '{col_b}' skipped "
-                f"(combined cardinality {combined_card} > {max_combined_cardinality})"
+                f"cat_cat_interact: '{col_a}' x '{col_b}' skipped "
+                f"(estimated cardinality {est_combined_card} > {max_combined_cardinality})"
             )
             continue
 
@@ -148,9 +160,19 @@ def cat_cat_interact(
         df2[new_col] = df2[col_a].astype(str) + sep + df2[col_b].astype(str)
         added.append(new_col)
 
-    log.info(f"cat_cat_interact: added {len(added)} columns: {added}")
-    return df1, df2
+        observed_card = df1[new_col].nunique(dropna=False)
+        if observed_card <= low_card_threshold:
+            low_card_cols.append(new_col)
+        else:
+            high_card_cols.append(new_col)
 
+    log.info(f"cat_cat_interact: added {len(added)} columns: {added}")
+    log.info(
+        f"cat_cat_interact: low_card_cols={low_card_cols}, "
+        f"high_card_cols={high_card_cols}"
+    )
+
+    return df1, df2, low_card_cols, high_card_cols
 
 # ============================================================
 # NUM × CAT  — per-category mean / std of a numeric column

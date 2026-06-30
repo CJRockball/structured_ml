@@ -374,58 +374,70 @@ def cat_encode(
     df_train: pd.DataFrame,
     df_test: pd.DataFrame,
     target: str,
+    cols_to_encode: list[str] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Ordinal-encode categorical columns using train categories.
-    Unseen test categories are mapped to code 0 (an explicit 'unknown' category).
-    Returned columns are pandas Categorical with codes starting at 0.
+    Ordinal-encode selected categorical columns using train categories.
+
+    - If cols_to_encode is None, encode all object/string/category columns
+      except the target.
+    - Unseen test categories are mapped to code 0 via an explicit
+      '__UNKNOWN__' category.
+    - Returned encoded columns are pandas Categorical.
     """
     df1 = df_train.copy()
-    df_y = df_train[[target]]
-    df1 = df1.drop(columns=[target])
-    df2 = df_test.copy()   
-    cats = df1.select_dtypes('str').columns.tolist()
-    
+    df2 = df_test.copy()
+
+    y = None
+    if target in df1.columns:
+        y = df1[target].copy()
+        df1 = df1.drop(columns=[target])
+
+    if cols_to_encode is None:
+        cats = df1.select_dtypes(include=["object", "string", "category"]).columns.tolist()
+    else:
+        missing = [c for c in cols_to_encode if c not in df1.columns or c not in df2.columns]
+        if missing:
+            raise KeyError(f"cat_encode: columns not found in both train/test: {missing}")
+        cats = cols_to_encode
+
     for col in cats:
-        # 1) Get train categories in a fixed order
-        train_cats = df1[col].astype("category").cat.categories
+        train_cats = pd.Index(df1[col].astype("category").cat.categories)
+        final_categories = pd.Index(["__UNKNOWN__"] + train_cats.tolist())
 
-        # 2) Build the final category labels, with unknown at index 0
-        final_categories = pd.Index(
-            ["__UNKNOWN__"] + train_cats.tolist()
-        )
-
-        # 3) Train codes: base codes (0..n-1) then +1
         base_train_codes = pd.Categorical(df1[col], categories=train_cats).codes
-        train_codes = base_train_codes + 1  # now 1..n; 0 is reserved for unknown
+        train_codes = base_train_codes + 1
+        train_codes = np.where(base_train_codes == -1, 0, train_codes)
 
-        # 4) Test codes: unseen -> -1, then +1 => 0
         base_test_codes = pd.Categorical(df2[col], categories=train_cats).codes
         test_codes = base_test_codes + 1
         test_codes = np.where(base_test_codes == -1, 0, test_codes)
 
-        # 5) Convert back to Categorical with explicit categories (0..n)
         df1[col] = pd.Categorical.from_codes(
             codes=train_codes,
             categories=final_categories,
             ordered=False,
         )
-        
         df2[col] = pd.Categorical.from_codes(
             codes=test_codes,
             categories=final_categories,
             ordered=False,
         )
 
-    # Add back the label
-    df1[target] = df_y[target]
+    if y is not None:
+        df1[target] = y
 
-    assert df1.shape[1] == (df2.shape[1] + 1), 'Train and test frames are different size'
-    assert df1.columns.to_list() == df2.columns.to_list() + [target], 'Train and test have different columns'
-    
-    log.info('Categorical features encoded')
+    if target in df1.columns:
+        assert df1.shape[1] == df2.shape[1] + 1, "Train and test frames are different size"
+        assert df1.columns.to_list() == df2.columns.to_list() + [target], \
+            "Train and test have different columns"
+    else:
+        assert df1.shape[1] == df2.shape[1], "Train and test frames are different size"
+        assert df1.columns.to_list() == df2.columns.to_list(), \
+            "Train and test have different columns"
+
+    log.info(f"Categorical features encoded: {cats}")
     return df1, df2
-
 
 
 def log_run(art_dir: Path, record: dict, ledger_name: str = "run_log.csv") -> None:

@@ -7,8 +7,8 @@
     "n_test": 247435
   },
   "data": {
-    "train_file": "s6e6_star_train_base_20260611.parquet",
-    "test_file": "s6e6_star_test_base_20260611.parquet",
+    "train_file": "s6e6_star_train_subj_know_20260628.parquet",
+    "test_file": "s6e6_star_test_subj_know_20260628.parquet",
     "exp_name": "tune_deep_slow",
     "exp_notes": "baseline xgb run"
   },
@@ -36,13 +36,13 @@
     "objective": "multi:softprob",
     "tree_method": "hist",
     "max_depth": 8,
-    "min_child_weight": 5,
+    "min_child_weight": 4,
     "learning_rate": 0.01,
     "subsample": 0.8,
     "colsample_bytree": 0.8,
     "colsample_bylevel": 1.0,
     "reg_alpha": 2.0,
-    "reg_lambda": 0.3,
+    "reg_lambda": 4.0,
     "n_estimators": 4000,
     "early_stopping_rounds": 100,
     "eval_metric": "mlogloss"

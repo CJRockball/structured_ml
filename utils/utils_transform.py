@@ -13,6 +13,7 @@ All functions:
 import numpy as np
 import pandas as pd
 import logging
+import math
 
 log = logging.getLogger(__name__)
 
@@ -102,6 +103,42 @@ def ratio_features(
     log.info(f"ratio_features: added {added}")
     return df1, df2
 
+# ============================================================
+# SUBTRACT COLS
+# ============================================================
+
+def subtraction_features(
+    df_train: pd.DataFrame,
+    df_test: pd.DataFrame,
+    pairs: list[tuple[str, str]],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Subtract two columns by eachother.
+
+    Use when: domain knowledge suggests the difference between 
+        two columns is important.
+
+    Args:
+        pairs: List of (numerator_col, denominator_col) tuples.
+
+    Output cols: {feature 1}_minus_{feature 2}  (float32)
+    """
+    df1, df2 = df_train.copy(), df_test.copy()
+    added = []
+
+    for feature1_col, feature2_col in pairs:
+        missing = [c for c in (feature1_col, feature2_col) if c not in df1.columns]
+        if missing:
+            log.warning(f"subtraction_features: {missing} not in DataFrame — pair skipped")
+            continue
+
+        new_col = f"{feature1_col}_minus_{feature2_col}"
+        df1[new_col] = (df1[feature1_col] - (df1[feature2_col])).astype("float32")
+        df2[new_col] = (df2[feature1_col] - (df2[feature2_col])).astype("float32")
+        added.append(new_col)
+
+    log.info(f"subtraction_features: added {added}")
+    return df1, df2
 
 # ============================================================
 # CLIP / WINSORISE
@@ -206,3 +243,50 @@ def polynomial_terms(
 
     log.info(f"polynomial_terms: added {added}")
     return df1, df2
+
+
+
+# ============================================================
+# CONVERT TO UNIT VECTORS
+# ============================================================
+
+def angle_converter(
+    df_train: pd.DataFrame,
+    df_test: pd.DataFrame,
+    cols: list[str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Special function to transform alpha, delta to x,y,z unitvectors
+
+    Use when: Special function for astro-photography
+
+    Args:
+        cols:    Columns to expand. Skips silently if col not in df.
+
+    Output cols: x, y, z (float32)
+    """
+    df1, df2 = df_train.copy(), df_test.copy()
+    added = []
+    
+    alpha = cols[0]
+    delta = cols[1]
+    delta_rad_train = df1[delta] * (np.pi / 180.0)
+    alpha_rad_train = df1[alpha] * (np.pi / 180.0)
+    delta_rad_test = df2[delta] * (np.pi / 180.0)
+    alpha_rad_test = df2[alpha] * (np.pi / 180.0)
+
+    df1['x'] = (np.cos(delta_rad_train) * np.cos(alpha_rad_train)).astype("float32")
+    df2['x'] = (np.cos(delta_rad_test) * np.cos(alpha_rad_test)).astype("float32")
+    added.append('x')
+
+    df1['y'] = (np.cos(delta_rad_train) * np.sin(alpha_rad_train)).astype("float32")
+    df2['y'] = (np.cos(delta_rad_test) * np.sin(alpha_rad_test)).astype("float32")
+    added.append('y')
+
+    df1['z'] = (np.sin(delta_rad_train)).astype("float32")
+    df2['z'] = (np.sin(delta_rad_test)).astype("float32")
+    added.append('z')
+
+    log.info(f"polynomial_terms: added {added}")
+    return df1, df2
+

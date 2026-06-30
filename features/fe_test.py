@@ -30,7 +30,7 @@ from config import (
     pipeline_logger as pipe_log,
 )
 
-pipe_log.info("fe_v2 feature engineering stage started")
+pipe_log.info("fe_v3 feature engineering stage started")
 set_seed()
 
 DATE_SLUG = datetime.date.today().strftime("%Y%m%d")
@@ -82,7 +82,7 @@ if CLIP_COLS:
 # ---- BLOCK B: Log-transform right-skewed numerics ----------
 # Populate from EDA: columns whose histogram shows heavy right tail.
 #%%
-LOG_COLS = ['alpha', 'delta']
+LOG_COLS = ['redshift']
 
 if LOG_COLS:
     df_train, df_test = log1p_transform(
@@ -95,7 +95,7 @@ if LOG_COLS:
 # Populate from domain knowledge (rates, proportions).
 # Each tuple: (numerator_col, denominator_col)
 #%%
-RATIO_PAIRS = [('u','g'), ('alpha', 'delta')]  # e.g. [("triglycerides", "hdl_cholesterol"), ("bmi", "age")]
+RATIO_PAIRS = []  # e.g. [("triglycerides", "hdl_cholesterol"), ("bmi", "age")]
 
 if RATIO_PAIRS:
     df_train, df_test = ratio_features(
@@ -107,7 +107,7 @@ if RATIO_PAIRS:
 # ---- BLOCK D: Polynomial terms ------------------------------
 # Only add after confirming non-linearity in target_vs_numerics plots.
 #%%
-POLY_COLS    = ['alpha', 'delta','u','g','r','i','z','redshift']   # e.g. ["bmi", "age"]
+POLY_COLS    = []   # e.g. ["bmi", "age"]
 POLY_DEGREES = [2]  # squares only by default; add 3 if justified
 
 if POLY_COLS:
@@ -120,8 +120,8 @@ if POLY_COLS:
 # ---- BLOCK E: Num × Num interactions ------------------------
 # Use explicit pairs driven by correlation matrix + domain knowledge.
 # auto_top_n is for rapid exploration only — prune before final run.
-|#%%
-NUM_NUM_PAIRS = []  # e.g. [("bmi", "age"), ("triglycerides", "bmi")]
+#%%
+NUM_NUM_PAIRS = [('redshift','z')]  # e.g. [("bmi", "age"), ("triglycerides", "bmi")]
 
 if NUM_NUM_PAIRS:
     df_train, df_test = num_num_interact(
@@ -134,7 +134,7 @@ if NUM_NUM_PAIRS:
 # Target-free: safe to compute on full train.
 # Each tuple: (numeric_col, cat_col)
 #%%
-NUM_CAT_PAIRS = [('redshift', 'spectral_type'), ( 'alpha', 'galaxy_population')]  # e.g. [("bmi", "ethnicity"), ("age", "smoking_status")]
+NUM_CAT_PAIRS = [('redshift', 'spectral_type'), ( 'redshift', 'galaxy_population'), ('z', 'spectral_type'), ( 'z', 'galaxy_population')]  # e.g. [("bmi", "ethnicity"), ("age", "smoking_status")]
 NUM_CAT_STATS = ["mean", "std"]
 
 if NUM_CAT_PAIRS:
@@ -150,7 +150,7 @@ if NUM_CAT_PAIRS:
 # Low-cardinality pairs are ordinal-encoded here via utils_basic.cat_encode.
 # High-cardinality pairs are returned as raw str for fold-aware TE in the CV loop.
 
-CAT_CAT_PAIRS = []          # e.g. [("compound", "team_color")]
+CAT_CAT_PAIRS = [('spectral_type', 'galaxy_population')]          # e.g. [("compound", "team_color")]
 CAT_CAT_MAX_CARD = 200      # pairs above this threshold → high_card_cols (TE in CV)
 
 if CAT_CAT_PAIRS:
@@ -205,7 +205,7 @@ audit_fe(df_test, pd.read_parquet(sorted(PROC_DIR.glob(
 # 4. SAVE — mirrors basic.py output pattern
 # ============================================================
 
-STAGES = ["load_base", "fe_v2"]
+STAGES = ["load_base", "fe_v3"]
 if high_card_cols:
     STAGES.append("high_card_te_pending")  # signals to model script that TE is needed
 
@@ -235,7 +235,7 @@ save_dataset(
 
 print_lineage(PROC_DIR / f"{comp_cfg.name}_train_fe_{DATE_SLUG}.parquet")
 
-pipe_log.info(f"fe_v2 stage complete — "
+pipe_log.info(f"fe_v3 stage complete — "
               f"train={df_train.shape}  test={df_test.shape}  "
               f"high_card_te={high_card_cols}")
 

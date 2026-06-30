@@ -36,6 +36,20 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Large data folders
+# Ignore data files but not the placeholder
+data/raw/*
+!data/raw/.gitignore
+data/processed/*
+!data/processed/.gitignore
+artifacts/*
+!artifacts/.gitignore
+submissions/*
+!submissions/.gitignore
+logs/*
+!logs/.gitignore
+
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

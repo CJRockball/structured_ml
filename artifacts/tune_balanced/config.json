@@ -7,8 +7,8 @@
     "n_test": 247435
   },
   "data": {
-    "train_file": "s6e6_star_train_base_20260611.parquet",
-    "test_file": "s6e6_star_test_base_20260611.parquet",
+    "train_file": "s6e6_star_train_fe_20260611.parquet",
+    "test_file": "s6e6_star_test_fe_20260611.parquet",
     "exp_name": "tune_balanced",
     "exp_notes": "baseline xgb run"
   },
